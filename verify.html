@@ -44,7 +44,7 @@
       const user = userData.user;
 
       // Now try to insert a profile
-      const { error: insertError } = await supabase.from('profiles').insert({
+      const { error: insertError } = await supabase.from('users').insert({
         id: user.id,
         email: user.email,
         created_at: new Date().toISOString()

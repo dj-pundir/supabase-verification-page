@@ -1,68 +1,93 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8" />
   <title>Email Verified</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-  <script src="config.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
-    body { font-family: sans-serif; padding: 40px; text-align: center; background: #f9f9f9; }
+    body {
+      font-family: sans-serif;
+      background-color: #f0f4f8;
+      text-align: center;
+      padding-top: 100px;
+    }
     h1 { color: #27ae60; }
-    .message { margin-top: 20px; font-size: 1.2rem; }
+    .message { font-size: 1.2rem; margin-top: 20px; }
   </style>
 </head>
 <body>
   <h1>✅ Verifying your email...</h1>
   <div class="message" id="message">Please wait...</div>
 
+  <!-- Load Supabase SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+
+  <!-- If using config.js, load it here -->
+  <!--
+  <script src="config.js"></script>
+  -->
+
+  <!-- Now run your app logic -->
   <script>
+    // If you use config.js, uncomment this:
+    // const SUPABASE_URL = window.SUPABASE_CONFIG.url;
+    // const SUPABASE_ANON_KEY = window.SUPABASE_CONFIG.anonKey;
 
-    const hash = window.location.hash;
-    const urlParams = new URLSearchParams(hash.substring(1)); // remove #
-    const accessToken = urlParams.get("access_token");
-    const type = urlParams.get("type");
+    // OR directly define them here (for testing):
+    const SUPABASE_URL = "https://pndatyazqkfjrhqjuhfz.supabase.co"; // 🔁 Replace this
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBuZGF0eWF6cWtmanJocWp1aGZ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA0Mzc4ODksImV4cCI6MjA2NjAxMzg4OX0.BVJYFGX73Cz8Ji4Nif56mCRA36Ek-OlmapKVvKjW7Fo"; // 🔁 Replace this
 
-    const supabase = supabase.createClient(
-      "https://pndatyazqkfjrhqjuhfz.supabase.co",
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBuZGF0eWF6cWtmanJocWp1aGZ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA0Mzc4ODksImV4cCI6MjA2NjAxMzg4OX0.BVJYFGX73Cz8Ji4Nif56mCRA36Ek-OlmapKVvKjW7Fo"
-  );
+    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    async function createUserProfile() {
+    async function verifyAndCreateProfile() {
+      const hash = window.location.hash;
+      const urlParams = new URLSearchParams(hash.substring(1));
+      const accessToken = urlParams.get("access_token");
+      const type = urlParams.get("type");
+
       if (!accessToken || type !== "signup") {
         document.getElementById("message").textContent = "Invalid or missing token.";
         return;
       }
 
-      // Inject token into Supabase session
-      await supabase.auth.setSession({ access_token: accessToken, refresh_token: accessToken });
+      try {
+        await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: accessToken,
+        });
 
-      const { data: userData, error: userError } = await supabase.auth.getUser();
+        const { data: userData, error: userError } = await supabase.auth.getUser();
 
-      if (userError || !userData?.user) {
-        document.getElementById("message").textContent = "User not found.";
-        return;
-      }
-
-      const user = userData.user;
-
-      // Now try to insert a profile
-      const { error: insertError } = await supabase.from('users').insert({
-        id: user.id,
-        email: user.email,
-        created_at: new Date().toISOString()
-      });
-
-      if (insertError) {
-        if (insertError.code === '23505') {
-          document.getElementById("message").textContent = "✅ You're already verified. Welcome back!";
-        } else {
-          document.getElementById("message").textContent = "Error creating profile: " + insertError.message;
+        if (userError || !userData?.user) {
+          document.getElementById("message").textContent = "User not found.";
+          return;
         }
-      } else {
-        document.getElementById("message").textContent = "🎉 You're verified and your profile has been created!";
+
+        const user = userData.user;
+
+        // Try to insert profile
+        const { error: insertError } = await supabase
+          .from("profiles")
+          .insert({
+            id: user.id,
+            email: user.email,
+            created_at: new Date().toISOString(),
+          });
+
+        if (insertError && insertError.code !== "23505") {
+          document.getElementById("message").textContent =
+            "Error creating profile: " + insertError.message;
+        } else {
+          document.getElementById("message").textContent =
+            "🎉 Email verified and profile created!";
+        }
+      } catch (e) {
+        document.getElementById("message").textContent =
+          "Unexpected error: " + e.message;
       }
     }
 
-    createUserProfile();
+    verifyAndCreateProfile();
   </script>
 </body>
 </html>

@@ -19,25 +19,16 @@
   <h1>✅ Verifying your email...</h1>
   <div class="message" id="message">Please wait...</div>
 
-  <!-- Load Supabase SDK -->
+  <!-- Load Supabase SDK FIRST -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 
-  <!-- If using config.js, load it here -->
-  <!--
-  <script src="config.js"></script>
-  -->
-
-  <!-- Now run your app logic -->
+  <!-- App logic AFTER SDK is loaded -->
   <script>
-    // If you use config.js, uncomment this:
-    // const SUPABASE_URL = window.SUPABASE_CONFIG.url;
-    // const SUPABASE_ANON_KEY = window.SUPABASE_CONFIG.anonKey;
+    const SUPABASE_URL = "https://pndatyazqkfjrhqjuhfz.supabase.co"; // 🔁 replace
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBuZGF0eWF6cWtmanJocWp1aGZ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA0Mzc4ODksImV4cCI6MjA2NjAxMzg4OX0.BVJYFGX73Cz8Ji4Nif56mCRA36Ek-OlmapKVvKjW7Fo"; // 🔁 replace
 
-    // OR directly define them here (for testing):
-    const SUPABASE_URL = "https://pndatyazqkfjrhqjuhfz.supabase.co"; // 🔁 Replace this
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBuZGF0eWF6cWtmanJocWp1aGZ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA0Mzc4ODksImV4cCI6MjA2NjAxMzg4OX0.BVJYFGX73Cz8Ji4Nif56mCRA36Ek-OlmapKVvKjW7Fo"; // 🔁 Replace this
-
-    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    // ✅ Use a different variable name to avoid shadowing
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     async function verifyAndCreateProfile() {
       const hash = window.location.hash;
@@ -51,12 +42,12 @@
       }
 
       try {
-        await supabase.auth.setSession({
+        await supabaseClient.auth.setSession({
           access_token: accessToken,
           refresh_token: accessToken,
         });
 
-        const { data: userData, error: userError } = await supabase.auth.getUser();
+        const { data: userData, error: userError } = await supabaseClient.auth.getUser();
 
         if (userError || !userData?.user) {
           document.getElementById("message").textContent = "User not found.";
@@ -65,8 +56,7 @@
 
         const user = userData.user;
 
-        // Try to insert profile
-        const { error: insertError } = await supabase
+        const { error: insertError } = await supabaseClient
           .from("profiles")
           .insert({
             id: user.id,

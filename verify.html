@@ -1,83 +1,14 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>Email Verified</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <style>
-    body {
-      font-family: sans-serif;
-      background-color: #f0f4f8;
-      text-align: center;
-      padding-top: 100px;
-    }
-    h1 { color: #27ae60; }
-    .message { font-size: 1.2rem; margin-top: 20px; }
-  </style>
-</head>
-<body>
-  <h1>✅ Verifying your email...</h1>
-  <div class="message" id="message">Please wait...</div>
-
-  <!-- Load Supabase SDK FIRST -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-
-  <!-- App logic AFTER SDK is loaded -->
-  <script>
-    const SUPABASE_URL = "https://pndatyazqkfjrhqjuhfz.supabase.co"; // 🔁 replace
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBuZGF0eWF6cWtmanJocWp1aGZ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA0Mzc4ODksImV4cCI6MjA2NjAxMzg4OX0.BVJYFGX73Cz8Ji4Nif56mCRA36Ek-OlmapKVvKjW7Fo"; // 🔁 replace
-
-    // ✅ Use a different variable name to avoid shadowing
-    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    async function verifyAndCreateProfile() {
-      const hash = window.location.hash;
-      const urlParams = new URLSearchParams(hash.substring(1));
-      const accessToken = urlParams.get("access_token");
-      const type = urlParams.get("type");
-
-      if (!accessToken || type !== "signup") {
-        document.getElementById("message").textContent = "Invalid or missing token.";
-        return;
-      }
-
-      try {
-        await supabaseClient.auth.setSession({
-          access_token: accessToken,
-          refresh_token: accessToken,
-        });
-
-        const { data: userData, error: userError } = await supabaseClient.auth.getUser();
-
-        if (userError || !userData?.user) {
-          document.getElementById("message").textContent = "User not found.";
-          return;
-        }
-
-        const user = userData.user;
-
-        const { error: insertError } = await supabaseClient
-          .from("users")
-          .insert({
-            id: user.id,
-            email: user.email,
-            created_at: new Date().toISOString(),
-          });
-
-        if (insertError && insertError.code !== "23505") {
-          document.getElementById("message").textContent =
-            "Error creating profile: " + insertError.message;
-        } else {
-          document.getElementById("message").textContent =
-            "🎉 Email verified and profile created!";
-        }
-      } catch (e) {
-        document.getElementById("message").textContent =
-          "Unexpected error: " + e.message;
-      }
-    }
-
-    verifyAndCreateProfile();
-  </script>
-</body>
+<html>
+  <head>
+    <title>Redirecting to app...</title>
+    <script>
+      const hash = window.location.hash; // access_token, refresh_token, etc.
+      const appURL = `workoutproai://auth-callback${hash}`;
+      window.location.href = appURL;
+    </script>
+  </head>
+  <body>
+    Redirecting to app...
+  </body>
 </html>
